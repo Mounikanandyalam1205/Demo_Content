@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reddit ReactJS Posts</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 20px;
+      }
+
+      .card {
+        width: 300px;
+        background-color: #fff;
+        margin: 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      .card img {
+        width: 100%;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+      }
+
+      .card-content {
+        padding: 20px;
+        overflow: hidden; /* Hide overflow content */
+        max-height: calc(300px - 80px); /* Calculate max-height based on card height minus read-more height */
+      }
+
+      .card-content h3 {
+        margin: 0;
+        color: #333;
+        overflow-wrap: break-word;
+        overflow: hidden;
+      }
+
+      .card-content p {
+        margin-top: 10px;
+        color: #666;
+        overflow-wrap: break-word;
+        max-height: 100px;
+        overflow: hidden;
+      }
+
+      .read-more {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 10px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .read-more a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .read-more a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="postsContainer">
+      <!-- Cards will be dynamically added here -->
+    </div>
+
+    <script>
+      fetch("https://www.reddit.com/r/reactjs.json")
+        .then((response) => response.json())
+        .then((data) => {
+          const posts = data.data.children;
+          const container = document.getElementById("postsContainer");
+
+          posts.forEach((post) => {
+            const { title, selftext_html, url, score } = post.data;
+
+            const card = document.createElement("div");
+            card.classList.add("card");
+
+            const thumbnail = post.data.thumbnail;
+            if (thumbnail && thumbnail !== "self" && thumbnail !== "default") {
+              const thumbnailImg = document.createElement("img");
+              thumbnailImg.src = thumbnail;
+              card.appendChild(thumbnailImg);
+            }
+
+            const cardContent = document.createElement("div");
+            cardContent.classList.add("card-content");
+
+            const titleElement = document.createElement("h3");
+            titleElement.textContent = title;
+
+            const selfText = document.createElement("p");
+            const selfTextParser = new DOMParser().parseFromString(
+              selftext_html || "",
+              "text/html"
+            );
+            selfText.innerHTML =
+              selfTextParser.body.textContent || "No description available";
+
+              const selfTextContent = selfTextParser.body.textContent || "No description available";
+
+// Truncate self text to 150 characters and add ellipsis
+const truncatedSelfText = selfTextContent.length > 200 ? selfTextContent.slice(0, 170) + '...' : selfTextContent;
+selfText.innerHTML = truncatedSelfText;
+
+            cardContent.appendChild(titleElement);
+            cardContent.appendChild(selfText);
+
+            card.appendChild(cardContent);
+
+            container.appendChild(card);
+
+            const readMore = document.createElement("div");
+            readMore.classList.add("read-more");
+            const postLink = document.createElement("a");
+            postLink.href = url;
+            postLink.textContent = "Read More";
+            postLink.classList.add("read-more-link");
+            readMore.appendChild(postLink);
+            card.appendChild(readMore);
+          });
+        })
+        .catch((error) => console.error("Error fetching data:", error));
+    </script>
+  </body>
+</html>
